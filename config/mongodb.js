@@ -7,6 +7,13 @@ const url = process.env.DB_URL;  // Fetching MongoDB connection URL from environ
 // Function to connect to MongoDB using Mongoose
 export const connectUsingMongoose = async () => {
     try {
+        // Check if MongoDB URL is provided
+        if (!url) {
+            console.log("Warning: DB_URL not found in environment variables. Database connection skipped.");
+            console.log("Please set DB_URL in your .env file to enable database functionality.");
+            return;
+        }
+
         // Attempting to connect to MongoDB using Mongoose
         await mongoose.connect(url);
 
@@ -15,6 +22,7 @@ export const connectUsingMongoose = async () => {
     } catch (err) {
         // If an error occurs during connection, log the error details
         console.log("Error while connecting to db");
-        console.log(err);
+        console.log("Make sure MongoDB is running locally or provide a valid connection string.");
+        console.log(err.message);
     }
 }

@@ -3,12 +3,13 @@ import User from "../models/userModel.js";  // Importing User model
 import bcrypt from "bcrypt";  // Importing bcrypt for password hashing
 import { transporter } from "../config/nodemailerConfig.js";  // Importing nodemailer transporter
 import dotenv from "dotenv";  // Importing dotenv to load environment variables
-
+import fetch from "node-fetch"; // filepath: c:\Users\admin\Desktop\NodeJS\Lab_06\NodeJS-Authentication-System\controllers\controller.js
 dotenv.config();  // Loading environment variables from .env file
 
 export  class UserGetController {
     getSignUpPage = (req, res) => {
         res.render("signup",{ message: "" });
+        
     }
 
     getSignInPage = (req, res) => {
@@ -53,7 +54,37 @@ export  class UserPostController {
     
     //sign up
     createUser = async (req, res) => {
-        const { username, email, password,cpassword } = req.body;
+        const { username, email, password, cpassword } = req.body;
+        
+        // Verify reCAPTCHA first
+        const recaptcha = req.body['g-recaptcha-response'];
+        if (recaptcha === undefined || recaptcha === '' || recaptcha === null) {
+            return res.status(404).render("signup", {message: "Please complete the reCAPTCHA"});
+        }
+        
+        // Verify reCAPTCHA with Google
+        const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+        const params = new URLSearchParams();
+        params.append('secret', secretKey);
+        params.append('response', recaptcha);
+
+        try {
+            const recaptchaResponse = await fetch('https://www.google.com/recaptcha/api/siteverify', {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded"
+                },
+                body: params
+            });
+            const recaptchaData = await recaptchaResponse.json();
+            
+            if (!recaptchaData.success) {
+                return res.status(400).render("signup", {message: "reCAPTCHA verification failed. Please try again."});
+            }
+        } catch (error) {
+            return res.status(500).render("signup", {message: "reCAPTCHA verification error. Please try again."});
+        }
+        
         if (password !== cpassword) {
             return res.status(400).render("signup",{message:"Passwords don't match"});
         }
@@ -81,14 +112,26 @@ export  class UserPostController {
         if (recaptcha === undefined || recaptcha === '' || recaptcha === null) {
             return res.status(404).render("signin",{message:"Please select captcha"});
         }
-        // const secretKey = process.env.RECAPTCHA_SECRET_KEY;
-        // const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${recaptcha}`;
-        // const response = await fetch(url, {
-        //     method: 'POST',
-        //     headers: {
-        //         "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
-        //     }
-        // });
+        
+        // Verify reCAPTCHA with Google
+        const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+        const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${recaptcha}`;
+        
+        try {
+            const recaptchaResponse = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
+                }
+            });
+            const recaptchaData = await recaptchaResponse.json();
+            
+            if (!recaptchaData.success) {
+                return res.status(400).render("signin", {message: "reCAPTCHA verification failed. Please try again."});
+            }
+        } catch (error) {
+            return res.status(500).render("signin", {message: "reCAPTCHA verification error. Please try again."});
+        }
 
         try {
             const existingUser = await User.findOne({ email: email});
@@ -113,6 +156,33 @@ export  class UserPostController {
     //forgot password
     forgotPassword = async (req, res) => {
         const { email } = req.body;
+        
+        // Verify reCAPTCHA first
+        const recaptcha = req.body['g-recaptcha-response'];
+        if (recaptcha === undefined || recaptcha === '' || recaptcha === null) {
+            return res.status(404).render("forgot-password", {message: "Please complete the reCAPTCHA"});
+        }
+        
+        // Verify reCAPTCHA with Google
+        const secretKey = process.env.RECAPTCHA_SECRET_KEY;
+        const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${recaptcha}`;
+        
+        try {
+            const recaptchaResponse = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    "Content-Type": "application/x-www-form-urlencoded; charset=utf-8"
+                }
+            });
+            const recaptchaData = await recaptchaResponse.json();
+            
+            if (!recaptchaData.success) {
+                return res.status(400).render("forgot-password", {message: "reCAPTCHA verification failed. Please try again."});
+            }
+        } catch (error) {
+            return res.status(500).render("forgot-password", {message: "reCAPTCHA verification error. Please try again."});
+        }
+        
         try {
             const existingUser = await User.findOne({ email: email });
             if (!existingUser) 

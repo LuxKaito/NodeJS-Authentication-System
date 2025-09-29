@@ -32,20 +32,26 @@ app.use(bodyParser.json());
 app.use(passport.initialize());
 app.use(passport.session());
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: process.env.CLIENT_ID,
-      clientSecret: process.env.CLIENT_SECRET,
-      callbackURL:
-        "https://nodejs-authentication-system-l2pu.onrender.com/auth/google/callback",
-      scope: ["profile", "email"],
-    },
-    function (accessToken, refreshToken, profile, callback) {
-      callback(null, profile);
-    }
-  )
-);
+// Only configure Google OAuth if credentials are provided
+if (process.env.CLIENT_ID && process.env.CLIENT_SECRET && 
+    process.env.CLIENT_ID !== 'dummy_client_id_for_testing') {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: process.env.CLIENT_ID,
+        clientSecret: process.env.CLIENT_SECRET,
+        callbackURL:
+          "http://localhost:3000/auth/google/callback",
+        scope: ["profile", "email"],
+      },
+      function (accessToken, refreshToken, profile, callback) {
+        callback(null, profile);
+      }
+    )
+  );
+} else {
+  console.warn("Google OAuth credentials not configured. Google login will be unavailable.");
+}
 
 passport.serializeUser((user, done) => {
   done(null, user);
@@ -59,6 +65,12 @@ passport.deserializeUser((user, done) => {
 app.set("view engine", "ejs"); // Define template engine
 app.use(ejsLayouts); // Use base template
 app.set("views", path.join(path.resolve(), "views")); // Define template directory
+
+// Make environment variables available to all views
+app.use((req, res, next) => {
+  res.locals.RECAPTCHA_SITE_KEY = process.env.RECAPTCHA_SITE_KEY;
+  next();
+});
 
 // DB Connection
 connectUsingMongoose();
