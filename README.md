@@ -20,14 +20,9 @@ This project contains a complete authentication system using Node.js, Express, a
   ![Change password step 1](public/img/change_pass1.png)
   ![Change password step 2](public/img/change_pass2.png)
 
-- **Encrypted Passwords**
-
 - **Google Login/Signup**  
   ![Google Sign-in step 1](public/img/gg_signin1.png)
   ![Google Sign-in step 2](public/img/gg_signin2.png)
-
-
-- **Password Strength Validation**: Notifications are displayed for unmatching passwords during sign up and incorrect passwords during sign in.
 
 - **reCAPTCHA Integration**  
   ![reCAPTCHA](public/img/recapcha.png)
