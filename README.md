@@ -26,7 +26,6 @@ This project contains a complete authentication system using Node.js, Express, a
   ![Google Sign-in step 1](public/img/gg_signin1.png)
   ![Google Sign-in step 2](public/img/gg_signin2.png)
 
-- **Forgot Password**
 
 - **Password Strength Validation**: Notifications are displayed for unmatching passwords during sign up and incorrect passwords during sign in.
 
